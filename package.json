@@ -1,0 +1,27 @@
+{
+  "name": "checkout",
+  "version": "1.0.0",
+  "description": "**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**",
+  "homepage": "https://github.com/cqlyj/Checkout#readme",
+  "bugs": {
+    "url": "https://github.com/cqlyj/Checkout/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cqlyj/Checkout.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5"
+  }
+}
