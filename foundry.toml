@@ -1,10 +1,18 @@
 [profile.default]
 src = "src"
 out = "out"
-libs = ["lib"]
+libs = ["lib", "email_recovery/dependencies"]
 
 remappings = [
-    "openzeppelin-contracts=lib/openzeppelin-contracts"
+    "openzeppelin-contracts=lib/openzeppelin-contracts/contracts",
+    "@openzeppelin-contracts-5.0.1=email_recovery/dependencies/@openzeppelin-contracts-5.0.1",
+    # Resolve nested project's imports when building from repo root
+    "vlayer-0.1.0=email_recovery/dependencies/vlayer-1.5.1-nightly-20251020-b84a901b51aac170c55042366a1bc2c2ae96148f/src",
+    "risc0-ethereum-3.0.0=email_recovery/dependencies/risc0-ethereum-3.0.0",
+    "forge-std=email_recovery/dependencies/forge-std-1.9.4/src",
+    "forge-std-1.9.4/src=email_recovery/dependencies/forge-std-1.9.4/src"
 ]
+
+viaIR = true
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
