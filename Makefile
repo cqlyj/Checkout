@@ -1,3 +1,9 @@
+-include .env
+
+########################################################
+# ZK
+########################################################
+
 compile:
 	@circom zk/circuits/pinVerification.circom --r1cs --wasm --sym -o zk/outputs/
 
@@ -25,3 +31,10 @@ generate-contract:
 
 simulate-verification-call:
 	@snarkjs zkey export soliditycalldata zk/proofs/public.json zk/proofs/proof.json
+
+########################################################
+# Foundry
+########################################################
+
+install:
+	@forge install OpenZeppelin/openzeppelin-contracts 
