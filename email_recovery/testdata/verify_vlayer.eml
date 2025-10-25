@@ -1,0 +1,69 @@
+Return-Path: <artur@vlayer.xyz>
+Received: from mail-wm1-f44.google.com (mail-wm1-f44.google.com [209.85.128.44])
+ by inbound-smtp.us-east-2.amazonaws.com with SMTP id 4b61j0vkc6q753gcaq0po2p78eh0ihlh6794ss01
+ for a2fd1788-c4f3-4f07-a800-40ccf9437a80@proving.vlayer.xyz;
+ Mon, 30 Jun 2025 09:48:04 +0000 (UTC)
+X-SES-Spam-Verdict: PASS
+X-SES-Virus-Verdict: PASS
+Received-SPF: pass (spfCheck: domain of vlayer.xyz designates 209.85.128.44 as permitted sender) client-ip=209.85.128.44; envelope-from=artur@vlayer.xyz; helo=mail-wm1-f44.google.com;
+Authentication-Results: amazonses.com;
+ spf=pass (spfCheck: domain of vlayer.xyz designates 209.85.128.44 as permitted sender) client-ip=209.85.128.44; envelope-from=artur@vlayer.xyz; helo=mail-wm1-f44.google.com;
+ dkim=pass header.i=@vlayer.xyz;
+ dmarc=pass header.from=vlayer.xyz;
+X-SES-RECEIPT: AEFBQUFBQUFBQUFHSHVET2RDN1RHUEJ5ZE1GMmZuTGlpZkZPeWo3VUxWeXpkQXBVZVQrK3FQK2xlbi9VZGJmSGlpU2FML0ZRbWxsVFFLbGVENXVpRmpQcFEyZnNHdlp6YTJjbHBaQ3RRSFA4VlBrN2VmcDVHMVBraTJ5WTQ0aTJPQitkWjdYdFl0YkJhVjBjWGJzbURkNVV1d0YycnVlTHJObC9qZTRIWUpTK3p6SHgwWlR2NXZnNzh4WmNrcjJPdXZUeURSeUtqaiszb0NrMjVhWlVqLzVmSkx4QWQyeWE4NzFSSXRRSDdEZGhPS3VCR2dMblQ2T2JvL0NqeS96MzJaSHpyWFhpYmhxSEFINnFlNjZzTkZjR0hzdUd5UUdZa0lsOHVrZUJuTHJTbUNFakpJS0E4VEE9PQ==
+X-SES-DKIM-SIGNATURE: a=rsa-sha256; q=dns/txt; b=QLLfkQ4eWSoCTF3H3jS5c5oMCt1eOroz1XvD7yggkNBOvUfYBjNFHL2/zN88Y2NAxasBGfcmKmO7/n4Mxiv6JKih7ZAo9X1Ox2R4DP/FsZIaSd9xoaHrEr5Kq2QBNHQb75eel6XltYnaOrM2b7Bi5GVp1dJohhNXZjsj6MPC/IU=; c=relaxed/simple; s=ndjes4mrtuzus6qxu3frw3ubo3gpjndv; d=amazonses.com; t=1751276884; v=1; bh=YLSFjsG/iQD7ntt6Akomio1n6fT+Bt9e+bN/76JLB/k=; h=From:To:Cc:Bcc:Subject:Date:Message-ID:MIME-Version:Content-Type:X-SES-RECEIPT;
+Received: by mail-wm1-f44.google.com with SMTP id 5b1f17b1804b1-4535fbe0299so10589975e9.3
+        for <a2fd1788-c4f3-4f07-a800-40ccf9437a80@proving.vlayer.xyz>; Mon, 30 Jun 2025 02:48:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=vlayer.xyz; s=google; t=1751276882; x=1751881682; darn=proving.vlayer.xyz;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=YLSFjsG/iQD7ntt6Akomio1n6fT+Bt9e+bN/76JLB/k=;
+        b=jLvt5crGlZvXYOez8sVhAlxtqAkANWb0ND9DLmB0hZoYW9/t6Y4K67e0hL0IiMjSOf
+         8DbWqayUAb1+au1Y1c4VnsjVLbW2QC3j+59Kxk+qdpwtAvtV2onIVlq/KAsjgt5wigAx
+         AvC5fMjd34aJSXJNfnvZ3wAcCzn8krtYaroIBDHvvdI+P89wqXfcHl1cdzHiWuUi4I60
+         bzUtVsZpqLzbPvDIG+c4OTCxiWXJUcNvNSuPl7dJ1u5KKeFIn4FrcR5Fj2zNti7TYV/7
+         eMTdbNooNHYCw1bas4KVXxbhRyhT1m7zY6f6b+IjvWOyqlv3TPQbRCkbfoY5gYloOe4y
+         dDQw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1751276882; x=1751881682;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=YLSFjsG/iQD7ntt6Akomio1n6fT+Bt9e+bN/76JLB/k=;
+        b=AymIWCCMyu3Xxntw//XVGcJZ02DEZwf7QUbEH+Ve93muQdbNBKXipUwQzor8Sa4Z6o
+         miyD4qofj8wwZ8z9ajcRuvchSADan1Go+iz61AG1GAW2T11IFHap2hUyLPayk5T96ewS
+         Uc0f7CLx3AjXFvyShnR1I5pS9KpS0odwaqzSoNVq+noX80VSiDbrxsiqspuCRTSG6/Wd
+         nm5a3jZWppDdFqLfmwaWL3RUegR6PP+9NZD6VL3Piw3gYjiPGN2iLMDGjTKZUmv3fVgo
+         tsqtc2O94iB1Av65CKi4fBhBPlE20nU69T1UYmY7YhBvWpeKif7gKNdoIttP5+0REC+w
+         iPKg==
+X-Gm-Message-State: AOJu0Yw6mh3JpEqertrwxanQgtNn3PNhj2gq8l72gkqqQXmCwoq8EZ/s
+	LArxUQo/lmVGD+TAlIF/gHHQCvkBdDiYEnSDwqKwfKMS/HYcMFkxzNC447Cz34d6toB2xfrcRRj
+	9gwiaqhqu71Upfe54+weYrKa37tAIuetwOfIoj2gPH0krrHqXBMjSX8c=
+X-Gm-Gg: ASbGncsd/YJP2MZSaUtP5sGmSbHImWIrh/arqMQYAeIgosfNZxDMPEN5lkqzdaZcfgs
+	9CAat0OKAALhnBwwiAeZb7U2ibShI1V83HJcym3XxLMvXpJOCXOmah6EUMr99FVeSdkR9p1r9Wp
+	BzDv3P9ennB9ssZ1yig/DT5CYDmceZOAWzXElqh1jt+FZC3FCfPXVlhWT3ToDKqJDZlFZBuYSyU
+	cpv
+X-Google-Smtp-Source: AGHT+IFOLNCS9QyCATwTcXfNFlfk9nrIgzXI7Wn54VcUuO5bBrSTm+VLDlnfULvx8sunbxHDZAOkVDKYkKr/B2bAnew=
+X-Received: by 2002:a05:600c:3ac5:b0:453:a95:f086 with SMTP id
+ 5b1f17b1804b1-4538ee399efmr124741065e9.12.1751276882230; Mon, 30 Jun 2025
+ 02:48:02 -0700 (PDT)
+MIME-Version: 1.0
+From: Artur Chmaro <artur@vlayer.xyz>
+Date: Mon, 30 Jun 2025 11:47:50 +0200
+X-Gm-Features: Ac12FXw1KNPL58FzFAbdtsMwGzT5qYVPXBT6lk3fdg783uEj6QncFu-b7S-FJIo
+Message-ID: <CAGp8hgCAtxwWHTGdEfQrPB0gKORqVPzn2qb6PcHO7sbLBx-msA@mail.gmail.com>
+Subject: Mint my domain NFT at address: 0xFE46f1E8c50dBaa7F724fDEAf110Ff942474c456
+To: a2fd1788-c4f3-4f07-a800-40ccf9437a80@proving.vlayer.xyz
+Content-Type: multipart/alternative; boundary="00000000000078169a0638c6ecf9"
+
+--00000000000078169a0638c6ecf9
+Content-Type: text/plain; charset="UTF-8"
+
+
+
+--00000000000078169a0638c6ecf9
+Content-Type: text/html; charset="UTF-8"
+
+<div dir="ltr"><br></div>
+
+--00000000000078169a0638c6ecf9--
