@@ -104,7 +104,7 @@ contract EmailDomainVerifier is Verifier, Ownable, EIP712, Nonces {
     // and once they successfully reset their pin, this state should be set back to false
     function getWalletToEmailVerified(
         address _wallet
-    ) public view returns (bool) {
+    ) external view returns (bool) {
         return walletToEmailVerified[_wallet];
     }
 
