@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
 import {Strings} from "@openzeppelin-contracts-5.0.1/utils/Strings.sol";
@@ -36,13 +36,9 @@ contract EmailDomainProver is Prover {
         revert("Invalid hex character");
     }
 
-    function main(UnverifiedEmail calldata unverifiedEmail)
-        public
-        view
-        returns (Proof memory, bytes32, address, string memory)
-    {
+    function main(UnverifiedEmail calldata unverifiedEmail) public view returns (Proof memory, bytes32, address) {
         VerifiedEmail memory email = unverifiedEmail.verify();
-        string[] memory subjectCapture = email.subject.capture("^Mint my domain NFT at address: (0x[a-fA-F0-9]{40})$");
+        string[] memory subjectCapture = email.subject.capture("^Recover my wallet at address: (0x[a-fA-F0-9]{40})$");
         require(subjectCapture.length > 0, "no wallet address in subject");
 
         address targetWallet = stringToAddress(subjectCapture[1]);
@@ -51,6 +47,6 @@ contract EmailDomainProver is Prover {
         require(captures.length == 2, "invalid email domain");
         require(bytes(captures[1]).length > 0, "invalid email domain");
 
-        return (proof(), sha256(abi.encodePacked(email.from)), targetWallet, captures[1]);
+        return (proof(), sha256(abi.encodePacked(email.from)), targetWallet);
     }
 }
