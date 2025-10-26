@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useState } from "react";
+import React from "react";
 
 const FaceCapture = dynamic(
   () => import("@/components/face/FaceCapture").then((m) => m.FaceCapture),
@@ -186,6 +187,8 @@ export default function RegisterPage() {
                   placeholder="••••••"
                 />
               </div>
+            ) : step === 4 ? (
+              <ProofSection walletAddress={walletAddress} pin={pin} />
             ) : (
               <div className="relative h-64 w-64 rounded-full bg-green-50 border border-green-200 shadow grid place-items-center">
                 <span className="text-green-700">Face captured ✓</span>
@@ -224,6 +227,85 @@ export default function RegisterPage() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function ProofSection({
+  walletAddress,
+  pin,
+}: {
+  walletAddress?: string;
+  pin: string;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [result, setResult] = useState<{
+    proof: unknown;
+    publicSignals: unknown;
+    credentialHash: string;
+    resultHash: string;
+  } | null>(null);
+
+  async function handleGenerate() {
+    try {
+      setLoading(true);
+      setError("");
+      setResult(null);
+      if (!walletAddress) throw new Error("Connect wallet first");
+      if (!/^\d{6}$/.test(pin)) throw new Error("PIN missing or invalid");
+      // 0 = register intent
+      const intent = 0;
+      const backend =
+        process.env.NEXT_PUBLIC_ZK_BACKEND_URL || "http://localhost:8787";
+      const nonceRes = await fetch(`${backend}/api/zk/nonce`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress, intent }),
+      });
+      const nonceJson = await nonceRes.json();
+      if (!nonceRes.ok)
+        throw new Error(nonceJson?.error || "Failed to get nonce");
+      const { nonce } = nonceJson;
+      const proofRes = await fetch(`${backend}/api/zk/proof`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress, pin, intent, nonce }),
+      });
+      const proofJson = await proofRes.json();
+      if (!proofRes.ok)
+        throw new Error(proofJson?.error || "Failed to generate proof");
+      setResult(proofJson);
+    } catch (e: unknown) {
+      setError(
+        (e as { message?: string })?.message || "Error generating proof"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="w-full max-w-2xl mx-auto text-center space-y-4">
+      <h3 className="text-xl font-semibold text-gray-900">
+        Generate zero knowledge proof
+      </h3>
+      <p className="text-gray-600">
+        PIN will be proven in-circuit without revealing it.
+      </p>
+      <button
+        className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold disabled:opacity-50"
+        onClick={handleGenerate}
+        disabled={loading}
+      >
+        {loading ? "Generating..." : "Generate proof"}
+      </button>
+      {error && <div className="text-sm text-red-600">{error}</div>}
+      {result && (
+        <pre className="text-left text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-64">
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      )}
     </div>
   );
 }
