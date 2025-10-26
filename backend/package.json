@@ -1,0 +1,22 @@
+{
+  "name": "zk-backend",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ZK proving service for PIN verification",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@supabase/supabase-js": "^2.45.4",
+    "circomlibjs": "^0.1.7",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1",
+    "snarkjs": "^0.7.1",
+    "zod": "^3.23.8"
+  }
+}
