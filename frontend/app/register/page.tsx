@@ -114,6 +114,7 @@ export default function RegisterPage() {
               "Confirm",
               "Register",
               "Delegate",
+              "Email",
             ];
             return (
               <div className="flex w-full items-center justify-center gap-4 text-sm">
@@ -200,9 +201,19 @@ export default function RegisterPage() {
                 onNext={() => setStep(5)}
                 onBack={() => setStep(3)}
               />
+            ) : step === 5 ? (
+              <DelegateSection
+                onNext={() => setStep(6)}
+                onBack={() => setStep(4)}
+              />
             ) : (
-              <div className="relative h-64 w-64 rounded-full bg-green-50 border border-green-200 shadow grid place-items-center">
-                <span className="text-green-700">Face captured ✓</span>
+              <div className="w-full max-w-sm mx-auto text-center">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Link email (optional)
+                </h3>
+                <p className="text-gray-600">
+                  Provide an email for backup and recovery later.
+                </p>
               </div>
             )}
           </div>
@@ -212,7 +223,7 @@ export default function RegisterPage() {
               {message}
             </div>
           </div>
-          {step !== 4 && (
+          {step !== 4 && step !== 5 && (
             <div className="flex gap-3">
               <button
                 onClick={handleBack}
@@ -453,5 +464,85 @@ function RegisterButton({
       )}
       Register
     </button>
+  );
+}
+
+function DelegateSection({
+  onNext,
+  onBack,
+}: {
+  onNext: () => void;
+  onBack: () => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [txHash, setTxHash] = useState<string>("");
+  const explorer = "https://arbitrum-sepolia.blockscout.com/tx/";
+
+  async function onDelegate() {
+    try {
+      setSubmitting(true);
+      setError("");
+      const res = await fetch("/api/eip7702/delegate", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Delegate failed");
+      setTxHash(data.hash as string);
+    } catch {
+      setError("Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="w-full max-w-2xl mx-auto text-center space-y-4">
+      <h3 className="text-xl font-semibold text-gray-900">
+        Delegate with EIP-7702
+      </h3>
+
+      {txHash && (
+        <div>
+          <a
+            href={`${explorer}${txHash}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-indigo-600 underline"
+          >
+            View transaction
+          </a>
+        </div>
+      )}
+      {error && <div className="text-sm text-red-600">{error}</div>}
+      <div className="flex justify-center gap-3">
+        {!txHash ? (
+          <>
+            <button
+              className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-50"
+              onClick={onBack}
+              disabled={submitting}
+            >
+              Back
+            </button>
+            <button
+              className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold disabled:opacity-50 flex items-center gap-2 justify-center"
+              onClick={onDelegate}
+              disabled={submitting}
+            >
+              {submitting && (
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+              )}
+              Delegate
+            </button>
+          </>
+        ) : (
+          <button
+            className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold"
+            onClick={onNext}
+          >
+            Next
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
