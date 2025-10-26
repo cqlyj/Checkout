@@ -9,7 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@privy-io/react-auth": "^3.4.1",
+    "@dynamic-labs/ethereum": "^4.40.1",
+    "@dynamic-labs/sdk-react-core": "^4.40.1",
     "next": "16.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",

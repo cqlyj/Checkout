@@ -1,14 +1,13 @@
 "use client";
 
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 
 export default function Home() {
-  const { ready, authenticated, login, logout } = usePrivy();
-  const { wallets } = useWallets();
+  const { primaryWallet, setShowAuthFlow, handleLogOut } = useDynamicContext();
 
   // Get the connected wallet address
-  const connectedWallet = wallets?.[0];
-  const walletAddress = connectedWallet?.address;
+  const walletAddress = primaryWallet?.address;
+  const isConnected = !!primaryWallet;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -20,14 +19,10 @@ export default function Home() {
           <p className="text-gray-600">Arbitrum Sepolia Testnet</p>
         </div>
 
-        {!ready ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
-        ) : !authenticated ? (
+        {!isConnected ? (
           <div className="w-full space-y-4">
             <button
-              onClick={login}
+              onClick={() => setShowAuthFlow(true)}
               className="w-full py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg"
             >
               Connect Wallet
@@ -45,7 +40,7 @@ export default function Home() {
             </div>
 
             <button
-              onClick={logout}
+              onClick={handleLogOut}
               className="w-full py-3 px-6 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-all duration-200"
             >
               Disconnect
