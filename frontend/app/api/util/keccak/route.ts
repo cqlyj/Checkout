@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
     const bytes = enc.encode(data);
     const hash = keccak256(bytes);
     return NextResponse.json({ hash });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e: unknown) {
     return NextResponse.json({ error: "Hash error" }, { status: 500 });
   }
