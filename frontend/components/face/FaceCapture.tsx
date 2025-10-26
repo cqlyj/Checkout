@@ -154,12 +154,33 @@ export function FaceCapture({ onCaptured, samples = 16 }: FaceCaptureProps) {
   }, [isCapturing, onCaptured, samples]);
 
   useEffect(() => {
-    if (!navigator?.mediaDevices?.getUserMedia) {
-      setSupported(false);
-      setStatus("Camera API not supported.");
+    let cancelled = false;
+    async function preview() {
+      if (!navigator?.mediaDevices?.getUserMedia) {
+        setSupported(false);
+        setStatus("Camera API not supported.");
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false,
+        });
+        if (cancelled) return;
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+          setStatus("");
+        }
+      } catch (e) {
+        setStatus("Allow camera permissions to preview.");
+      }
     }
+    // start preview on mount
+    preview();
     return () => {
-      // cleanup: stop camera if active
+      cancelled = true;
       try {
         streamRef.current?.getTracks().forEach((t) => t.stop());
       } catch {}
