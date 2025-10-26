@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useState } from "react";
 import React from "react";
+import Link from "next/link";
 
 const FaceCapture = dynamic(
   () => import("@/components/face/FaceCapture").then((m) => m.FaceCapture),
@@ -207,13 +208,27 @@ export default function RegisterPage() {
                 onBack={() => setStep(4)}
               />
             ) : (
-              <div className="w-full max-w-sm mx-auto text-center">
+              <div className="w-full max-w-sm mx-auto text-center space-y-4">
                 <h3 className="text-xl font-semibold text-gray-900">
                   Link email (optional)
                 </h3>
                 <p className="text-gray-600">
                   Provide an email for backup and recovery later.
                 </p>
+                <div className="flex justify-center gap-3">
+                  <Link
+                    href="/dashboard"
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700"
+                  >
+                    Skip
+                  </Link>
+                  <Link
+                    href="/link-email"
+                    className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold"
+                  >
+                    Go there
+                  </Link>
+                </div>
               </div>
             )}
           </div>
@@ -223,7 +238,7 @@ export default function RegisterPage() {
               {message}
             </div>
           </div>
-          {step !== 4 && step !== 5 && (
+          {step !== 4 && step !== 5 && step !== 6 && (
             <div className="flex gap-3">
               <button
                 onClick={handleBack}
