@@ -15,7 +15,8 @@ export default function RegisterPage() {
   const [step, setStep] = useState<number>(1);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
-  const [debug, setDebug] = useState<string>("");
+  const [pin, setPin] = useState<string>("");
+  const [confirmPin, setConfirmPin] = useState<string>("");
 
   async function handleCaptured(args: {
     embedding: number[];
@@ -38,9 +39,6 @@ export default function RegisterPage() {
           : (args.embedding || []).length,
       modelVersion: args.modelVersion,
     };
-    setDebug(
-      `payload: len=${payload.embedding.length}, dim=${payload.embeddingDim}`
-    );
     setMessage("Registering your face template...");
     try {
       const res = await fetch("/api/face/register", {
@@ -63,6 +61,39 @@ export default function RegisterPage() {
       setSubmitting(false);
     }
   }
+
+  function handleBack() {
+    if (submitting) return;
+    setMessage("");
+    setStep((s) => Math.max(1, s - 1));
+  }
+
+  function handleNext() {
+    if (submitting) return;
+    setMessage("");
+    if (step === 2) {
+      const normalized = pin.trim();
+      if (normalized.length !== 6 || /\D/.test(normalized)) {
+        setMessage("Enter a 6-digit PIN.");
+        return;
+      }
+      setStep(3);
+      return;
+    }
+    if (step === 3) {
+      const normalized = confirmPin.trim();
+      if (normalized.length !== 6 || /\D/.test(normalized)) {
+        setMessage("Confirm with a 6-digit PIN.");
+        return;
+      }
+      if (normalized !== pin) {
+        setMessage("PINs do not match.");
+        return;
+      }
+      setStep(4);
+      return;
+    }
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-indigo-50">
       <main className="mx-auto max-w-4xl px-6 py-12">
@@ -74,47 +105,87 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* Stepper */}
-          <ol className="flex w-full items-center justify-center gap-4 text-sm text-gray-600">
-            <li className="flex items-center gap-2">
-              <span className="h-6 w-6 rounded-full bg-indigo-600 text-white text-xs grid place-items-center">
-                1
-              </span>
-              Face
-            </li>
-            <div className="h-px w-10 bg-gray-300" />
-            <li className="flex items-center gap-2 opacity-60">
-              <span className="h-6 w-6 rounded-full bg-gray-200 text-gray-700 text-xs grid place-items-center">
-                2
-              </span>
-              PIN
-            </li>
-            <div className="h-px w-10 bg-gray-300" />
-            <li className="flex items-center gap-2 opacity-60">
-              <span className="h-6 w-6 rounded-full bg-gray-200 text-gray-700 text-xs grid place-items-center">
-                3
-              </span>
-              Confirm
-            </li>
-            <div className="h-px w-10 bg-gray-300" />
-            <li className="flex items-center gap-2 opacity-60">
-              <span className="h-6 w-6 rounded-full bg-gray-200 text-gray-700 text-xs grid place-items-center">
-                4
-              </span>
-              Sign
-            </li>
-            <div className="h-px w-10 bg-gray-300" />
-            <li className="flex items-center gap-2 opacity-60">
-              <span className="h-6 w-6 rounded-full bg-gray-200 text-gray-700 text-xs grid place-items-center">
-                5
-              </span>
-              Email
-            </li>
-          </ol>
+          {/* Stepper with colored circles and connectors */}
+          {(() => {
+            const stepsLabels = ["Face", "PIN", "Confirm", "Proof", "Email"];
+            return (
+              <div className="flex w-full items-center justify-center gap-4 text-sm">
+                {stepsLabels.map((label, idx) => {
+                  const circleActive = idx < step; // 1-based step
+                  const connectorActive = idx < step - 1; // connectors behind current step
+                  return (
+                    <div key={label} className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`h-6 w-6 rounded-full grid place-items-center text-xs ${
+                            circleActive
+                              ? "bg-indigo-600 text-white"
+                              : "bg-gray-200 text-gray-700"
+                          }`}
+                        >
+                          {idx + 1}
+                        </span>
+                        <span
+                          className={
+                            circleActive ? "text-gray-900" : "text-gray-500"
+                          }
+                        >
+                          {label}
+                        </span>
+                      </div>
+                      {idx < stepsLabels.length - 1 && (
+                        <div
+                          className={`h-0.5 w-10 ${
+                            connectorActive ? "bg-indigo-600" : "bg-gray-300"
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           <div className="mt-4">
             {step === 1 ? (
               <FaceCapture onCaptured={handleCaptured} />
+            ) : step === 2 ? (
+              <div className="w-full max-w-sm mx-auto">
+                <label className="block text-sm font-medium text-gray-700">
+                  Set a PIN (6 digits)
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={pin}
+                  onChange={(e) =>
+                    setPin(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  maxLength={6}
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  placeholder="••••••"
+                />
+              </div>
+            ) : step === 3 ? (
+              <div className="w-full max-w-sm mx-auto">
+                <label className="block text-sm font-medium text-gray-700">
+                  Confirm your PIN
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={confirmPin}
+                  onChange={(e) =>
+                    setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  maxLength={6}
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  placeholder="••••••"
+                />
+              </div>
             ) : (
               <div className="relative h-64 w-64 rounded-full bg-green-50 border border-green-200 shadow grid place-items-center">
                 <span className="text-green-700">Face captured ✓</span>
@@ -123,36 +194,31 @@ export default function RegisterPage() {
           </div>
 
           <div className="w-full max-w-md">
-            <div className="h-2 w-full rounded bg-gray-200">
-              <div
-                className="h-2 rounded bg-indigo-600 transition-all"
-                style={{ width: `${(step / 5) * 100}%` }}
-              />
-            </div>
             <div className="mt-2 text-center text-sm text-gray-600 min-h-5">
               {message}
             </div>
-            {debug && (
-              <div className="mt-1 text-center text-xs text-gray-400 break-all">
-                {debug}
-              </div>
-            )}
           </div>
           <div className="flex gap-3">
             <button
+              onClick={handleBack}
               disabled={step === 1 || submitting}
               className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-50"
             >
               Back
             </button>
             <button
-              disabled={step < 1 || submitting}
+              onClick={handleNext}
+              disabled={step === 1 || submitting}
               className="rounded-lg bg-indigo-600 px-5 py-2 text-white font-semibold disabled:opacity-50"
             >
               {step === 1
                 ? "Awaiting face..."
                 : step === 2
                 ? "Set PIN"
+                : step === 3
+                ? "Confirm PIN"
+                : step === 4
+                ? "Generate proof"
                 : "Next"}
             </button>
           </div>
