@@ -41,3 +41,6 @@ install:
 
 deploy-all:
 	@forge script script/DeployAll.s.sol:DeployAll --rpc-url $(ARBITRUM_SEPOLIA_RPC_URL) --account burner --sender 0x120C1fc5B7f357c0254cDC8027970DDD6405e115 --broadcast --verify --verifier blockscout --verifier-url https://arbitrum-sepolia.blockscout.com/api/ -vvvv
+
+deploy-without-verify:
+	@forge script script/DeployAll.s.sol:DeployAll --rpc-url $(ARBITRUM_SEPOLIA_RPC_URL) --account burner --sender 0x120C1fc5B7f357c0254cDC8027970DDD6405e115 --broadcast -vvvv
