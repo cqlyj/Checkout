@@ -108,7 +108,13 @@ export default function RegisterPage() {
 
           {/* Stepper with colored circles and connectors */}
           {(() => {
-            const stepsLabels = ["Face", "PIN", "Confirm", "Proof", "Email"];
+            const stepsLabels = [
+              "Face",
+              "PIN",
+              "Confirm",
+              "Register",
+              "Delegate",
+            ];
             return (
               <div className="flex w-full items-center justify-center gap-4 text-sm">
                 {stepsLabels.map((label, idx) => {
@@ -188,7 +194,12 @@ export default function RegisterPage() {
                 />
               </div>
             ) : step === 4 ? (
-              <ProofSection walletAddress={walletAddress} pin={pin} />
+              <ProofSection
+                walletAddress={walletAddress}
+                pin={pin}
+                onNext={() => setStep(5)}
+                onBack={() => setStep(3)}
+              />
             ) : (
               <div className="relative h-64 w-64 rounded-full bg-green-50 border border-green-200 shadow grid place-items-center">
                 <span className="text-green-700">Face captured ✓</span>
@@ -201,30 +212,30 @@ export default function RegisterPage() {
               {message}
             </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handleBack}
-              disabled={step === 1 || submitting}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-50"
-            >
-              Back
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={step === 1 || submitting}
-              className="rounded-lg bg-indigo-600 px-5 py-2 text-white font-semibold disabled:opacity-50"
-            >
-              {step === 1
-                ? "Awaiting face..."
-                : step === 2
-                ? "Set PIN"
-                : step === 3
-                ? "Confirm PIN"
-                : step === 4
-                ? "Generate proof"
-                : "Next"}
-            </button>
-          </div>
+          {step !== 4 && (
+            <div className="flex gap-3">
+              <button
+                onClick={handleBack}
+                disabled={step === 1 || submitting}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-50"
+              >
+                Back
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={step === 1 || submitting}
+                className="rounded-lg bg-indigo-600 px-5 py-2 text-white font-semibold disabled:opacity-50"
+              >
+                {step === 1
+                  ? "Awaiting face..."
+                  : step === 2
+                  ? "Set PIN"
+                  : step === 3
+                  ? "Confirm PIN"
+                  : "Next"}
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </div>
@@ -234,18 +245,24 @@ export default function RegisterPage() {
 function ProofSection({
   walletAddress,
   pin,
+  onNext,
+  onBack,
 }: {
   walletAddress?: string;
   pin: string;
+  onNext: () => void;
+  onBack: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  const [result, setResult] = useState<{
+  const [registeredHash, setRegisteredHash] = useState<string>("");
+  type ProofResult = {
     proof: unknown;
-    publicSignals: unknown;
+    publicSignals: string[];
     credentialHash: string;
     resultHash: string;
-  } | null>(null);
+  } | null;
+  const [result, setResult] = useState<ProofResult>(null);
 
   async function handleGenerate() {
     try {
@@ -294,10 +311,13 @@ function ProofSection({
         PIN will be proven in-circuit without revealing it.
       </p>
       <button
-        className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold disabled:opacity-50"
+        className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold disabled:opacity-50 flex items-center gap-2 justify-center mx-auto"
         onClick={handleGenerate}
         disabled={loading}
       >
+        {loading && (
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+        )}
         {loading ? "Generating..." : "Generate proof"}
       </button>
       {error && <div className="text-sm text-red-600">{error}</div>}
@@ -306,6 +326,132 @@ function ProofSection({
           {JSON.stringify(result, null, 2)}
         </pre>
       )}
+      {registeredHash && (
+        <div className="mt-3 text-center">
+          <a
+            href={`https://arbitrum-sepolia.blockscout.com/tx/${registeredHash}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-indigo-600 underline"
+          >
+            View transaction
+          </a>
+        </div>
+      )}
+      <div className="flex justify-center gap-3">
+        {!registeredHash ? (
+          !result ? (
+            <>
+              <button
+                className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-50"
+                onClick={onBack}
+                disabled={loading}
+              >
+                Back
+              </button>
+              <RegisterButton
+                result={result}
+                setError={() => setError("Something went wrong.")}
+                onRegistered={(hash) => setRegisteredHash(hash)}
+              />
+            </>
+          ) : (
+            <>
+              <button
+                className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-50"
+                onClick={() => setResult(null)}
+                disabled={loading}
+              >
+                Back
+              </button>
+              <RegisterButton
+                result={result}
+                setError={() => setError("Something went wrong.")}
+                onRegistered={(hash) => setRegisteredHash(hash)}
+              />
+            </>
+          )
+        ) : (
+          <>
+            <button
+              className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold"
+              onClick={onNext}
+            >
+              Next
+            </button>
+          </>
+        )}
+      </div>
     </div>
+  );
+}
+
+function RegisterButton({
+  result,
+  setError,
+  onRegistered,
+}: {
+  result: {
+    proof: unknown;
+    publicSignals: string[];
+    credentialHash: string;
+    resultHash: string;
+  } | null;
+  setError: (msg: string) => void;
+  onRegistered: (hash: string) => void;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [txHash, setTxHash] = useState<string>("");
+  const explorer = "https://arbitrum-sepolia.blockscout.com/tx/";
+
+  async function onRegister() {
+    try {
+      if (!result) throw new Error("Generate proof first");
+      setSubmitting(true);
+      const res = await fetch("/api/registry/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          proof: result.proof,
+          publicSignals: result.publicSignals,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error("Register tx failed");
+      const hash = data.hash as string;
+      setTxHash(hash);
+      onRegistered(hash);
+    } catch (e) {
+      const err = e as { message?: string };
+      setError(err?.message || "Register failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (txHash) {
+    return (
+      <a
+        href={`${explorer}${txHash}`}
+        target="_blank"
+        rel="noreferrer"
+        className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold"
+      >
+        View transaction
+      </a>
+    );
+  }
+
+  return (
+    <button
+      className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold disabled:opacity-50 flex items-center gap-2 justify-center"
+      onClick={onRegister}
+      disabled={!result || submitting}
+    >
+      {submitting && (
+        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent" />
+      )}
+      Register
+    </button>
   );
 }
