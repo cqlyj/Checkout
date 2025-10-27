@@ -13,10 +13,26 @@ export default function Home() {
   useEffect(() => {
     const wasConnected = wasConnectedRef.current;
     if (!wasConnected && isConnected) {
-      router.push("/register");
+      (async () => {
+        try {
+          const res = await fetch("/api/status/wallet", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ walletAddress: primaryWallet?.address }),
+          });
+          const data = await res.json();
+          if (data?.registered) {
+            router.push("/dashboard");
+          } else {
+            router.push("/register");
+          }
+        } catch {
+          router.push("/register");
+        }
+      })();
     }
     wasConnectedRef.current = isConnected;
-  }, [isConnected, router]);
+  }, [isConnected, router, primaryWallet?.address]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
