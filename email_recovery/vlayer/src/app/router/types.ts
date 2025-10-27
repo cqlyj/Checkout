@@ -21,16 +21,14 @@ export const stepsMeta: Record<StepKind, StepMeta> = {
   [StepKind.welcome]: {
     path: "",
     kind: StepKind.welcome,
-    title: "Domain NFT",
-    description:
-      'Mint an NFT with your email domain. For example, if you work at Ethereum Foundation, you can mint "ethereum.org" NFT. This showcases Email Proofs.',
-    headerIcon: "/img/email-welcome-img.svg",
+    title: "Recover you pin with linked email",
+    description: "",
     index: 0,
   },
   [StepKind.connectWallet]: {
     path: "connect-wallet",
     kind: StepKind.connectWallet,
-    title: "Mail based NFT",
+    title: "Recover Pin",
     description:
       "To proceed to the next step, please connect your wallet now by clicking the button below.",
     backUrl: "",
