@@ -16,13 +16,12 @@ export default function Dashboard() {
           >
             Example app
           </a>
-          <button
-            className="rounded-lg bg-gray-300 px-5 py-3 text-gray-600 font-semibold cursor-not-allowed"
-            disabled
-            title="Coming soon"
+          <a
+            href="http://localhost:5173/"
+            className="rounded-lg bg-gray-300 px-5 py-3 text-gray-700 font-semibold"
           >
             Forget PIN
-          </button>
+          </a>
         </div>
       </main>
     </div>
