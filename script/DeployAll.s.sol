@@ -13,6 +13,7 @@ import {Repository} from "vlayer-0.1.0/Repository.sol";
 
 contract DeployAll is Script {
     function run() external {
+        // Begin broadcast with the deployer configured via forge CLI flags
         vm.startBroadcast();
 
         // Deploy vlayer contracts
@@ -63,6 +64,91 @@ contract DeployAll is Script {
         );
         console.log("Delegation deployed at:", address(delegation));
 
-        vm.stopBroadcast();
+        // Write all deployed addresses to a machine-friendly file for scripting
+        // Format: KEY=0x...
+        {
+            string memory root = vm.projectRoot();
+            string memory addrPath = string.concat(root, "/addresses.txt");
+
+            // truncate/create file
+            vm.writeFile(addrPath, "");
+
+            // Append lines (do not reorder keys without updating scripts)
+            vm.writeLine(
+                addrPath,
+                string.concat(
+                    "EMAIL_DOMAIN_PROVER=",
+                    vm.toString(address(emailDomainProver))
+                )
+            );
+            vm.writeLine(
+                addrPath,
+                string.concat(
+                    "EMAIL_DOMAIN_VERIFIER=",
+                    vm.toString(address(emailDomainVerifier))
+                )
+            );
+            vm.writeLine(
+                addrPath,
+                string.concat(
+                    "CUSTOM_FAKE_PROOF_VERIFIER=",
+                    vm.toString(address(customVerifier))
+                )
+            );
+            vm.writeLine(
+                addrPath,
+                string.concat(
+                    "GROTH16_VERIFIER=",
+                    vm.toString(address(groth16Verifier))
+                )
+            );
+            vm.writeLine(
+                addrPath,
+                string.concat("MOCK_USDC=", vm.toString(address(mockUSDC)))
+            );
+            vm.writeLine(
+                addrPath,
+                string.concat("REGISTRY=", vm.toString(address(registry)))
+            );
+            vm.writeLine(
+                addrPath,
+                string.concat("DELEGATION=", vm.toString(address(delegation)))
+            );
+
+            console.log("addresses.txt written at:", addrPath);
+        }
+
+        // Optionally mint tokens to a user wallet
+        // The connected wallet address is discovered from either EIP7702_PRIVATE_KEY or CONNECTED_WALLET_ADDRESS env vars.
+        // - If EIP7702_PRIVATE_KEY is set, we'll also auto-approve Delegation from that wallet (second broadcast).
+        {
+            uint256 userPk = vm.envOr("EIP7702_PRIVATE_KEY", uint256(0));
+            address userAddr = userPk != 0
+                ? vm.addr(userPk)
+                : vm.envOr("CONNECTED_WALLET_ADDRESS", address(0));
+
+            if (userAddr != address(0)) {
+                uint256 mintAmount = 1_000_000 * (10 ** mockUSDC.decimals()); // 1M USDC
+                mockUSDC.mint(userAddr, mintAmount);
+                console.log("Minted USDC to:", userAddr);
+            } else {
+                console.log(
+                    "Skip mint: provide EIP7702_PRIVATE_KEY or CONNECTED_WALLET_ADDRESS env"
+                );
+            }
+
+            vm.stopBroadcast(); // end deployer broadcast before switching signer
+
+            if (userPk != 0) {
+                // Approve Delegation from the user's wallet if PK is provided
+                vm.startBroadcast(userPk);
+                mockUSDC.approve(address(delegation), type(uint256).max);
+                console.log(
+                    "Approved Delegation to spend USDC from user wallet:",
+                    userAddr
+                );
+                vm.stopBroadcast();
+            }
+        }
     }
 }
