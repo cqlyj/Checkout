@@ -15,4 +15,8 @@ remappings = [
 
 viaIR = true
 
+fs_permissions = [
+   {access ="write", path ="./addresses.txt"},
+]
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
