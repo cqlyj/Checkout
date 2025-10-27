@@ -10,6 +10,12 @@ export default function Dashboard() {
           >
             Link email
           </a>
+          <a
+            href="/example-app"
+            className="rounded-lg bg-emerald-600 px-5 py-3 text-white font-semibold"
+          >
+            Example app
+          </a>
           <button
             className="rounded-lg bg-gray-300 px-5 py-3 text-gray-600 font-semibold cursor-not-allowed"
             disabled
