@@ -24,7 +24,7 @@ export const MintNFT = ({
             disabled={isBusy}
             type="button"
             id="nextButton"
-            data-testid="mint-nft-button"
+            data-testid="prove-and-verify-button"
             onClick={isGo ? handleProving : isVerify ? handleVerify : undefined}
           >
             {isGo ? "Go" : isVerify ? "Verify" : currentStep}
