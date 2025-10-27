@@ -6,8 +6,8 @@ import {IRegistry} from "./interfaces/IRegistry.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
 /// Intent:
-/// 0: Register / Recover
-/// 1: Transfer
+/// 0: Register / Recover, Transfer
+/// 1 2 3... : For future features
 
 contract Delegation {
     IVerifier public verifier;
@@ -53,11 +53,9 @@ contract Delegation {
         address tokenAddress,
         uint256 amount
     ) external {
-        // For transfers, validate that the wallet is registered.
-        // We do not require exact credential hash equality with the stored value,
-        // since credential_hash in the proof includes the intent and differs from
-        // the value stored during registration (intent = 0).
-        if (registry.getCredentialHash(wallet) == 0) {
+        // Ensure the credential hash in the proof matches the registered one
+        // (registration stores Poseidon(wallet, pin, 0) as credential hash).
+        if (registry.getCredentialHash(wallet) != credential_hash) {
             revert Delegation__InvalidCredentials();
         }
 
