@@ -45,6 +45,9 @@ export const MintNFT = ({
             type="button"
             id="nextButton"
             className="rounded-lg bg-indigo-600 px-5 py-3 text-white font-semibold"
+            onClick={() => {
+              window.location.href = "http://localhost:3000/reset-pin";
+            }}
           >
             Finish
           </button>
