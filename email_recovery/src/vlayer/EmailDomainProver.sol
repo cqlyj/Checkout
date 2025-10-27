@@ -63,6 +63,6 @@ contract EmailDomainProver is Prover {
         require(captures.length == 2, "invalid email domain");
         require(bytes(captures[1]).length > 0, "invalid email domain");
 
-        return (proof(), sha256(abi.encodePacked(email.from)), targetWallet);
+        return (proof(), keccak256(abi.encodePacked(email.from)), targetWallet);
     }
 }
