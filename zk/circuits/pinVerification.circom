@@ -3,8 +3,8 @@ pragma circom 2.0.0;
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 
 /// Intent: 
-/// 0: Register
-/// 1: Transfer
+/// 0: Register and Transfer
+/// 1 2 3... : For future features
 
 template PinVerification() {
     // Private inputs
