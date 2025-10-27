@@ -47,7 +47,7 @@ export default function Dashboard() {
                 Forget PIN
               </h2>
               <p className="text-sm text-gray-500">
-                Recover your PIN by verifying your linked email.
+                Reset your PIN by verifying your linked email.
               </p>
               <a
                 href="http://localhost:5173/"
