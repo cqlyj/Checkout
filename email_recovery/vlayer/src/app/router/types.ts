@@ -55,8 +55,8 @@ export const stepsMeta: Record<StepKind, StepMeta> = {
   [StepKind.mintNft]: {
     path: "mint-nft",
     kind: StepKind.mintNft,
-    title: "Mint NFT",
-    description: "Your email is ready for proving and minting.",
+    title: "Prove And Verify",
+    description: "Your email is ready for proving and verifying.",
     backUrl: "send-email",
     index: 3,
   },
