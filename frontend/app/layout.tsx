@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wallet Connect App",
-  description: "Connect your wallet to Arbitrum Sepolia",
+  title: "Checkout",
+  description: "Checkout with your face, securely holding your assets",
 };
 
 export default function RootLayout({
