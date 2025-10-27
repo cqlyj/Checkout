@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -29,6 +30,14 @@ export default function ExampleApp() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [checkingOut, setCheckingOut] = useState(false);
   const [message, setMessage] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
+  const [identifiedWallet, setIdentifiedWallet] = useState<
+    `0x${string}` | null
+  >(null);
+  const [similarity, setSimilarity] = useState<number | null>(null);
+  const [pin, setPin] = useState<string>("");
+  const [txHash, setTxHash] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
 
   const items = useMemo(() => PRODUCTS, []);
 
@@ -66,15 +75,119 @@ export default function ExampleApp() {
     try {
       setCheckingOut(true);
       setMessage("");
-      // This is where facial payment flow would be triggered (scan + on-chain tx)
-      // For now, simulate a brief delay and success.
-      await new Promise((r) => setTimeout(r, 1200));
-      setCart([]);
-      setMessage("Checkout complete via facial payment demo!");
+      setShowScanner(true);
     } catch {
       setMessage("Checkout failed. Please try again.");
     } finally {
       setCheckingOut(false);
+    }
+  }
+
+  const FaceCapture = useMemo(
+    () =>
+      dynamic(
+        () =>
+          import("@/components/face/FaceCapture").then((m) => m.FaceCapture),
+        { ssr: false }
+      ),
+    []
+  );
+
+  async function handleCaptured(args: {
+    embedding: number[];
+    embeddingDim: number;
+    modelVersion: string;
+  }) {
+    try {
+      setMessage("Identifying face...");
+      const res = await fetch("/api/face/identify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ embedding: args.embedding }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Identify failed");
+      if (!data?.match) throw new Error("No matching wallet found");
+      setIdentifiedWallet(data.match as `0x${string}`);
+      setSimilarity(
+        typeof data.similarity === "number" ? data.similarity : null
+      );
+      setMessage("");
+    } catch (e: unknown) {
+      setMessage((e as { message?: string })?.message || "Identify failed");
+    }
+  }
+
+  function usdCentsToUsdcUnits(cents: number): string {
+    // USDC has 6 decimals; cents has 2 decimals -> multiply by 10^(6-2) = 10000
+    const units = Number(Math.max(0, cents)) * 10000;
+    return String(units);
+  }
+
+  async function onPay() {
+    try {
+      if (!identifiedWallet) throw new Error("No wallet identified");
+      const normalizedPin = pin.trim();
+      if (!/^\d{6}$/.test(normalizedPin))
+        throw new Error("Enter a 6-digit PIN");
+      setSubmitting(true);
+      setMessage("Generating proof...");
+      const backend =
+        process.env.NEXT_PUBLIC_ZK_BACKEND_URL || "http://localhost:8787";
+      const intent = 1; // transfer intent
+      const nonceRes = await fetch(`${backend}/api/zk/nonce`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletAddress: identifiedWallet, intent }),
+      });
+      const nonceJson = await nonceRes.json();
+      if (!nonceRes.ok)
+        throw new Error(nonceJson?.error || "Failed to get nonce");
+      const { nonce } = nonceJson;
+      const proofRes = await fetch(`${backend}/api/zk/proof`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletAddress: identifiedWallet,
+          pin: normalizedPin,
+          intent,
+          nonce,
+        }),
+      });
+      const proofJson = await proofRes.json();
+      if (!proofRes.ok)
+        throw new Error(proofJson?.error || "Failed to generate proof");
+
+      setMessage("Submitting payment...");
+      const token =
+        (process.env.NEXT_PUBLIC_PAYMENT_TOKEN_ADDRESS as `0x${string}`) ||
+        ("0x8cc9F652130D7698763fD870E90CFdaCd3E9ee41" as `0x${string}`); // MockUSDC from addresses.txt fallback
+      const to =
+        (process.env.NEXT_PUBLIC_MERCHANT_ADDRESS as `0x${string}`) ||
+        (process.env.NEXT_PUBLIC_EOA_RECEIVER as `0x${string}`) ||
+        ("0x681D696734e0f04b361507C3F234A2528A77e8Ee" as `0x${string}`); // Registry as dummy fallback
+      const amount = usdCentsToUsdcUnits(cartTotalCents);
+      const res = await fetch("/api/delegation/agree", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          proof: proofJson.proof,
+          publicSignals: proofJson.publicSignals,
+          from: identifiedWallet,
+          to,
+          token,
+          amount,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Payment failed");
+      setTxHash(data.hash as string);
+      setMessage("");
+      setCart([]);
+    } catch (e: unknown) {
+      setMessage((e as { message?: string })?.message || "Payment failed");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -167,19 +280,140 @@ export default function ExampleApp() {
                 <div className="font-semibold">Total</div>
                 <div className="font-semibold">{currency(cartTotalCents)}</div>
               </div>
-              <button
-                className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-white font-semibold disabled:opacity-50"
-                disabled={cart.length === 0 || checkingOut}
-                onClick={onCheckout}
-              >
-                {checkingOut ? "Processing..." : "Checkout with Face"}
-              </button>
-              {message && (
-                <div className="text-sm text-emerald-700">{message}</div>
+              {!txHash ? (
+                <>
+                  <button
+                    className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-white font-semibold disabled:opacity-50"
+                    disabled={cart.length === 0 || checkingOut || submitting}
+                    onClick={onCheckout}
+                  >
+                    {checkingOut ? "Processing..." : "Checkout"}
+                  </button>
+                  {message && (
+                    <div className="text-sm text-emerald-700">{message}</div>
+                  )}
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-sm">Payment sent.</div>
+                  <a
+                    href={`https://arbitrum-sepolia.blockscout.com/tx/${txHash}`}
+                    className="text-indigo-600 underline"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View transaction
+                  </a>
+                  <button
+                    className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-white font-semibold"
+                    onClick={() => router.push("/dashboard")}
+                  >
+                    Finish
+                  </button>
+                </div>
               )}
             </div>
           </aside>
         </div>
+
+        {/* Scanner & Payment Modal */}
+        {showScanner && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl p-6 space-y-4">
+              <h3 className="text-xl font-semibold text-gray-900 text-center">
+                Verify your face to checkout
+              </h3>
+              {txHash ? (
+                <div className="space-y-4 text-center">
+                  <div className="text-sm text-emerald-700">Payment sent.</div>
+                  <a
+                    href={`https://arbitrum-sepolia.blockscout.com/tx/${txHash}`}
+                    className="text-indigo-600 underline break-all"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    View transaction
+                  </a>
+                  <button
+                    className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-white font-semibold"
+                    onClick={() => {
+                      setShowScanner(false);
+                      router.push("/dashboard");
+                    }}
+                  >
+                    Finish
+                  </button>
+                </div>
+              ) : !identifiedWallet ? (
+                <div className="flex flex-col items-center gap-4">
+                  <FaceCapture onCaptured={handleCaptured} />
+                  <button
+                    className="text-sm text-gray-600 underline"
+                    onClick={() => setShowScanner(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-gray-200 p-3">
+                    <div className="text-sm text-gray-600">Wallet</div>
+                    <div className="font-mono text-sm break-all">
+                      {identifiedWallet}
+                    </div>
+                    {typeof similarity === "number" && (
+                      <div className="text-xs text-gray-500">
+                        Similarity: {similarity.toFixed(3)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="rounded-lg border border-gray-200 p-3">
+                    <div className="text-sm text-gray-600">Amount</div>
+                    <div className="font-semibold">
+                      {currency(cartTotalCents)} (USDC)
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Enter your PIN
+                    </label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={pin}
+                      onChange={(e) =>
+                        setPin(e.target.value.replace(/\D/g, "").slice(0, 6))
+                      }
+                      className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                      placeholder="••••••"
+                    />
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <button
+                      className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700"
+                      onClick={() => {
+                        setIdentifiedWallet(null);
+                        setShowScanner(false);
+                        setPin("");
+                      }}
+                    >
+                      Back
+                    </button>
+                    <button
+                      className="rounded-lg bg-emerald-600 px-5 py-3 text-white font-semibold disabled:opacity-50"
+                      onClick={onPay}
+                      disabled={submitting || pin.length !== 6}
+                    >
+                      {submitting ? "Processing..." : "Pay with Face"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
