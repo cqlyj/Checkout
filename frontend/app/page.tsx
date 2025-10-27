@@ -1,6 +1,6 @@
 "use client";
 
-import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { DynamicWidget, useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
@@ -35,17 +35,27 @@ export default function Home() {
   }, [isConnected, router, primaryWallet?.address]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <main className="flex flex-col items-center gap-6 p-12 bg-white rounded-2xl shadow-xl max-w-2xl w-full">
-        <div className="text-center space-y-3">
-          <h1 className="text-5xl font-extrabold tracking-tight text-gray-900">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-white to-indigo-50 px-4">
+      <main className="flex w-full max-w-xl flex-col items-center gap-8 rounded-2xl border border-gray-100 bg-white/90 p-10 shadow-lg backdrop-blur">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900">
             Checkout
           </h1>
-          <p className="text-base md:text-lg text-gray-600 max-w-xl mx-auto">
-            Connect to start checking out by scanning your face while securely
-            holding your assets.
-          </p>
+          <p className="text-gray-600">Login or sign up to start.</p>
         </div>
+
+        <div className="w-full flex items-center justify-center">
+          <div className="scale-110 sm:scale-125">
+            <DynamicWidget
+              variant="modal"
+              buttonClassName="!px-6 !py-3 !text-base !rounded-xl"
+            />
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-500">
+          Checkout with your face, securely holding your assets.
+        </p>
       </main>
     </div>
   );
