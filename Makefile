@@ -44,3 +44,13 @@ deploy-all:
 
 deploy-without-verify:
 	@forge script script/DeployAll.s.sol:DeployAll --rpc-url $(ARBITRUM_SEPOLIA_RPC_URL) --account burner --sender 0x120C1fc5B7f357c0254cDC8027970DDD6405e115 --broadcast -vvvv
+
+# Deploy, then update env files from addresses.txt
+reset:
+	@bash script/deploy-and-update.sh
+
+quick-reset: deploy-without-verify update-envs
+
+# Only update env files from existing addresses.txt (no deploy)
+update-envs:
+	@bash script/update-envs.sh
