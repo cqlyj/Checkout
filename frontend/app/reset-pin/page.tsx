@@ -109,8 +109,8 @@ export default function ResetPinPage() {
   if (loading || verified === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-white to-indigo-50">
-        <main className="mx-auto max-w-4xl px-6 py-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">Reset PIN</h1>
+        <main className="mx-auto max-w-2xl px-4 pt-24 md:pt-32 text-center">
+          <h1 className="mb-4 text-3xl font-bold text-gray-900">Reset PIN</h1>
           <p className="text-gray-600">
             {walletAddress
               ? "Checking eligibility..."
@@ -123,11 +123,13 @@ export default function ResetPinPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-indigo-50">
-      <main className="mx-auto max-w-4xl px-6 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Reset PIN</h1>
+      <main className="mx-auto w-full max-w-md px-4 pt-24 md:pt-32">
+        <h1 className="mb-6 text-center text-3xl font-bold text-gray-900">
+          Reset PIN
+        </h1>
 
         {!txHash ? (
-          <div className="w-full max-w-sm space-y-4">
+          <div className="w-full space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 New PIN (6 digits)
@@ -163,8 +165,10 @@ export default function ResetPinPage() {
               />
             </div>
 
-            <div className="text-sm text-gray-600 min-h-5">{message}</div>
-            <div className="flex gap-3">
+            <div className="min-h-5 text-sm text-gray-600 text-center">
+              {message}
+            </div>
+            <div className="flex gap-3 justify-center">
               <Link
                 href="/dashboard"
                 className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 disabled:opacity-50"
