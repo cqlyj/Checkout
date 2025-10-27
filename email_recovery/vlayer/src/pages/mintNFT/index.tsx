@@ -5,7 +5,7 @@ import { useLocalStorage } from "usehooks-ts";
 export const MintNFTContainer = () => {
   const [emlFile] = useLocalStorage("emlFile", "");
 
-  const { currentStep, startProving, verificationError } =
+  const { currentStep, startProving, handleVerify, txHash, verificationError } =
     useEmailProofVerification();
 
   const handleProving = () => {
@@ -18,6 +18,8 @@ export const MintNFTContainer = () => {
     <MintNFT
       currentStep={currentStep}
       handleProving={handleProving}
+      handleVerify={handleVerify}
+      txHash={txHash}
       verificationError={verificationError?.message ?? null}
     />
   );
