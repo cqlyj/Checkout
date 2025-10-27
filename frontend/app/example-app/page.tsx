@@ -38,6 +38,7 @@ export default function ExampleApp() {
   const [pin, setPin] = useState<string>("");
   const [txHash, setTxHash] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [modalError, setModalError] = useState("");
 
   const items = useMemo(() => PRODUCTS, []);
 
@@ -75,6 +76,7 @@ export default function ExampleApp() {
     try {
       setCheckingOut(true);
       setMessage("");
+      setModalError("");
       setShowScanner(true);
     } catch {
       setMessage("Checkout failed. Please try again.");
@@ -132,9 +134,10 @@ export default function ExampleApp() {
         throw new Error("Enter a 6-digit PIN");
       setSubmitting(true);
       setMessage("Generating proof...");
+      setModalError("");
       const backend =
         process.env.NEXT_PUBLIC_ZK_BACKEND_URL || "http://localhost:8787";
-      const intent = 1; // transfer intent
+      const intent = 0; // use intent 0 (same as registration) for transfers for now
       const nonceRes = await fetch(`${backend}/api/zk/nonce`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -184,8 +187,8 @@ export default function ExampleApp() {
       setTxHash(data.hash as string);
       setMessage("");
       setCart([]);
-    } catch (e: unknown) {
-      setMessage((e as { message?: string })?.message || "Payment failed");
+    } catch {
+      setModalError("PIN is not correct.");
     } finally {
       setSubmitting(false);
     }
@@ -306,7 +309,10 @@ export default function ExampleApp() {
                   </a>
                   <button
                     className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-white font-semibold"
-                    onClick={() => router.push("/dashboard")}
+                    onClick={() => {
+                      if (typeof window !== "undefined")
+                        window.location.reload();
+                    }}
                   >
                     Finish
                   </button>
@@ -338,7 +344,8 @@ export default function ExampleApp() {
                     className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-white font-semibold"
                     onClick={() => {
                       setShowScanner(false);
-                      router.push("/dashboard");
+                      if (typeof window !== "undefined")
+                        window.location.reload();
                     }}
                   >
                     Finish
@@ -397,6 +404,7 @@ export default function ExampleApp() {
                         setIdentifiedWallet(null);
                         setShowScanner(false);
                         setPin("");
+                        setModalError("");
                       }}
                     >
                       Back
@@ -409,6 +417,9 @@ export default function ExampleApp() {
                       {submitting ? "Processing..." : "Pay with Face"}
                     </button>
                   </div>
+                  {modalError && (
+                    <div className="text-sm text-red-600">{modalError}</div>
+                  )}
                 </div>
               )}
             </div>
