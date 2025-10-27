@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { DynamicWidget } from "@dynamic-labs/sdk-react-core";
+import { usePathname } from "next/navigation";
 
 export function Header() {
+  const pathname = usePathname();
+  if (pathname === "/") {
+    return null;
+  }
   return (
     <header className="sticky top-0 z-30 w-full border-b border-gray-100 bg-white/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
