@@ -143,6 +143,8 @@ app.post("/api/zk/proof", async (req, reply) => {
   }
 });
 
+// Remove background watcher; recovery reset is handled in the Next.js API
+
 const PORT = process.env.ZK_BACKEND_PORT
   ? Number(process.env.ZK_BACKEND_PORT)
   : 8787;
