@@ -77,7 +77,7 @@ contract Delegation {
 
         registry.useNonce(wallet, nonce);
 
-        if (intent == 1) {
+        if (intent == 0) {
             _transfer(from, to, tokenAddress, amount);
         }
 
