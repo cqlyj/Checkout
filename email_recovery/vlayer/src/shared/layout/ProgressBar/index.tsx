@@ -19,7 +19,7 @@ export const ProgressBar = () => {
         Send email
       </li>
       <li className={`step text-black text-xs ${activeStepClass(3)}`}>
-        Mint NFT
+        Prove And Verify
       </li>
     </motion.ul>
   );
