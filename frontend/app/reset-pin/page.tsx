@@ -65,8 +65,8 @@ export default function ResetPinPage() {
       if (!walletAddress) throw new Error("Connect wallet first");
       if (!confirmValid) throw new Error("Enter matching 6-digit PINs");
       setSubmitting(true);
-      // intent 1 = recover
-      const intent = 1;
+      // intent 0 = recover
+      const intent = 0;
       const backend =
         process.env.NEXT_PUBLIC_ZK_BACKEND_URL || "http://localhost:8787";
       const nonceRes = await fetch(`${backend}/api/zk/nonce`, {
