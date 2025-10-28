@@ -414,7 +414,7 @@ export default function ExampleApp() {
                       onClick={onPay}
                       disabled={submitting || pin.length !== 6}
                     >
-                      {submitting ? "Processing..." : "Pay with Face"}
+                      {submitting ? "Processing..." : "Pay"}
                     </button>
                   </div>
                   {modalError && (
