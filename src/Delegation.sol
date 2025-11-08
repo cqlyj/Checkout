@@ -3,13 +3,15 @@ pragma solidity 0.8.28;
 
 import {IVerifier} from "./interfaces/IVerifier.sol";
 import {IRegistry} from "./interfaces/IRegistry.sol";
-import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// Intent:
 /// 0: Register / Recover, Transfer
 /// 1 2 3... : For future features
 
 contract Delegation {
+    using SafeERC20 for IERC20;
     IVerifier public verifier;
     IRegistry public registry;
 
@@ -21,6 +23,7 @@ contract Delegation {
     error Delegation__NotEnoughBalance();
     error Delegation__InsufficientAllowance();
     error Delegation__TokenTransferFailed();
+    error Delegation__InvalidSender();
 
     constructor(address verifierAddress, address registryAddress) {
         verifier = IVerifier(verifierAddress);
@@ -84,6 +87,16 @@ contract Delegation {
         emit Agree(wallet, credential_hash, nonce);
     }
 
+    function withdraw(uint256 amount) external {
+        if (msg.sender == address(0)) {
+            revert Delegation__InvalidSender();
+        }
+        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        if (!success) {
+            revert Delegation__TokenTransferFailed();
+        }
+    }
+
     /*//////////////////////////////////////////////////////////////
                            INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -103,9 +116,6 @@ contract Delegation {
             revert Delegation__InsufficientAllowance();
         }
 
-        bool success = token.transferFrom(from, to, amount);
-        if (!success) {
-            revert Delegation__TokenTransferFailed();
-        }
+        token.safeTransferFrom(from, to, amount);
     }
 }
