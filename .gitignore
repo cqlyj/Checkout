@@ -16,3 +16,5 @@ docs/
 
 # Node modules
 node_modules/
+mermaid_code/
+info.txt
