@@ -8,7 +8,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test:replay": "node test/replay.test.js"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
