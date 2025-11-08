@@ -54,3 +54,16 @@ quick-reset: deploy-without-verify update-envs
 # Only update env files from existing addresses.txt (no deploy)
 update-envs:
 	@bash script/update-envs.sh
+
+# Audit
+slither: slither-email-recovery slither-main 
+
+slither-main:
+	@slither . --config-file ./slither.config.json --skip-assembly
+
+slither-email-recovery:
+	@cd email_recovery && \
+	slither . --config-file ./slither.config.json --skip-assembly
+
+aderyn:
+	@aderyn . && cd email_recovery && aderyn .
