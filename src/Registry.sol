@@ -3,6 +3,7 @@ pragma solidity 0.8.28;
 
 import {IVerifier} from "./interfaces/IVerifier.sol";
 import {IEmailDomainVerifier} from "./interfaces/IEmailProofVerifier.sol";
+import {SafeCast} from "openzeppelin-contracts/utils/math/SafeCast.sol";
 
 /// Intent:
 /// 0: Register / Recover
@@ -161,7 +162,7 @@ contract Registry {
     //////////////////////////////////////////////////////////////*/
 
     function uintToAddress(uint256 _wallet) public pure returns (address) {
-        return address(uint160(_wallet));
+        return address(SafeCast.toUint160(_wallet));
     }
 
     function getCredentialHash(uint256 wallet) external view returns (uint256) {
