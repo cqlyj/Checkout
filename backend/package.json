@@ -9,7 +9,9 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "test:replay": "node test/replay.test.js"
+    "test:replay": "node test/replay.test.js",
+    "perf:proof": "node scripts/perf/proof-gen-bench.js",
+    "perf:verify": "node scripts/perf/offchain-verify-bench.js"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
