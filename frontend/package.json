@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate:biometric": "node scripts/generate-embeddings.js --out ./mock_data/biometric --users 20 --samples 60 --impostors 200 --base scripts/base-embedding.json --centroidShift 0.70 --genuineStd 0.012 --genuineHardFrac 0.08 --genuineHardStd 0.017 --genuineHardShift 0.22 --impostorStd 0.07 --pushFromAvg 0.60 --impostorNearFrac 0.035 --impostorNearShift 0.09 --impostorNearStd 0.015 --spoofGoodFrac 0.04 --spoofGoodShift 0.12 --spoofGoodStd 0.012 --spoofBadShift 0.35 --spoofBadStd 0.06",
+    "test:biometric": "npm run -s generate:biometric && node scripts/biometric-eval.js --genuine ./mock_data/biometric/genuine --impostors ./mock_data/biometric/impostors --spoof ./mock_data/biometric/spoof --threshold 0.85 --holdout 0.5"
   },
   "dependencies": {
     "@dynamic-labs/ethereum": "^4.40.1",
