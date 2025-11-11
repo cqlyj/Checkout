@@ -39,6 +39,7 @@ export default function ExampleApp() {
   const [txHash, setTxHash] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [modalError, setModalError] = useState("");
+  const [noWalletFound, setNoWalletFound] = useState<boolean>(false);
 
   const items = useMemo(() => PRODUCTS, []);
 
@@ -109,11 +110,20 @@ export default function ExampleApp() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Identify failed");
-      if (!data?.match) throw new Error("No matching wallet found");
+      const sim =
+        typeof data?.similarity === "number" ? (data.similarity as number) : null;
+      setSimilarity(sim);
+      const hasMatch = !!data?.match;
+      const meetsThreshold = typeof sim === "number" ? sim >= 0.8 : false;
+      if (!hasMatch || !meetsThreshold) {
+        // Do not set wallet if below threshold; show retry UI instead
+        setIdentifiedWallet(null);
+        setNoWalletFound(true);
+        setMessage("");
+        return;
+      }
+      setNoWalletFound(false);
       setIdentifiedWallet(data.match as `0x${string}`);
-      setSimilarity(
-        typeof data.similarity === "number" ? data.similarity : null
-      );
       setMessage("");
     } catch (e: unknown) {
       setMessage((e as { message?: string })?.message || "Identify failed");
@@ -352,15 +362,40 @@ export default function ExampleApp() {
                   </button>
                 </div>
               ) : !identifiedWallet ? (
-                <div className="flex flex-col items-center gap-4">
-                  <FaceCapture onCaptured={handleCaptured} />
-                  <button
-                    className="text-sm text-gray-600 underline"
-                    onClick={() => setShowScanner(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
+                noWalletFound ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="text-sm text-gray-700">
+                      No wallet found. Please try scanning again.
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700"
+                        onClick={() => {
+                          setNoWalletFound(false);
+                          setMessage("");
+                        }}
+                      >
+                        Scan again
+                      </button>
+                      <button
+                        className="text-sm text-gray-600 underline"
+                        onClick={() => setShowScanner(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <FaceCapture onCaptured={handleCaptured} />
+                    <button
+                      className="text-sm text-gray-600 underline"
+                      onClick={() => setShowScanner(false)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )
               ) : (
                 <div className="space-y-4">
                   <div className="rounded-lg border border-gray-200 p-3">
@@ -368,11 +403,6 @@ export default function ExampleApp() {
                     <div className="font-mono text-sm break-all">
                       {identifiedWallet}
                     </div>
-                    {typeof similarity === "number" && (
-                      <div className="text-xs text-gray-500">
-                        Similarity: {similarity.toFixed(3)}
-                      </div>
-                    )}
                   </div>
                   <div className="rounded-lg border border-gray-200 p-3">
                     <div className="text-sm text-gray-600">Amount</div>
