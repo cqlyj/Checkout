@@ -1,5 +1,5 @@
 host = "0.0.0.0"
-port = 3000
+port = 3001
 proof_mode = "fake"
 
 [[rpc_urls]]
@@ -9,3 +9,8 @@ url = "http://anvil-l1:8545"
 [[rpc_urls]]
 chain_id = 31338
 url = "http://anvil-l2-op:8545"
+
+# Arbitrum Sepolia testnet
+[[rpc_urls]]
+chain_id = 421614
+url = "https://arb-sepolia.g.alchemy.com/v2/zSlV7xFXjWsJeV7s2GNF8iVAban_r3-b"
