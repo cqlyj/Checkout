@@ -60,6 +60,7 @@ export async function POST() {
       address: eoaAccount.address,
       authorizationList: [authorization],
       functionName: "initialize",
+      gas: BigInt(600000),
     });
 
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
