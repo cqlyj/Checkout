@@ -10,9 +10,9 @@ services:
       RUST_LOG: "info,call_engine=debug"
     command: "--config-file /config.toml"
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3001:3001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 5s
       timeout: 60s
       retries: 10
